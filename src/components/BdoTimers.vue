@@ -2,10 +2,14 @@
 <div>
     <p>Errors: {{ errors }}</p>
     
-    <ul>
-        <li></li>
+    <ul class="boss-list">
+        <li v-for="boss in bosses" :key="boss">
+            <div class="boss-container">
+                <h1>{{ boss }}</h1>
+            </div>
+        </li>
     </ul>
-    <p>{{ timerPage }}</p>
+    <p>{{ spawnTimes }}</p>
 
 </div>
 </template>
@@ -30,16 +34,15 @@ export default {
       ],
       spawnTimes: {},
       timerPage: [],
-      jsSoup: "",
       errors: []
     };
   },
   computed: {},
   methods: {
     buildDateObject(givenDate) {
-      //This takes a very specific input, the format of which is reliant on what the boss timer page gives (including the timezone)
-      //givenDate should be in format "Fri, 14:00 EST", we will split the values in to a list and remove punctuation.
-      //then we will convert the day to a numeral representation of the day of the week
+      //This takes a very specific input, the format of which is based on what the boss timer page gives (including the timezone)
+      //givenDate should be in format "Fri, 14:00 EST". it will split the values in to a list and remove punctuation.
+      //then it will convert the day to a numeral representation of the day of the week
       var currentDate = moment(); //May need to add .tz("America/New_York")  I'm not sure exactly how .tz works yet though.
       var compositeDate = "";
       const weekDays = {
@@ -85,7 +88,7 @@ export default {
           "&callback=?"
       )
       .then(response => {
-        // console.log(response);
+        //take response HTML and pick out the spawn time tables and save the data
         this.timerPage = response.data;
         var soup = new JSSoup(this.timerPage);
         var tables = soup.findAll("table");
@@ -95,7 +98,6 @@ export default {
           var tableObject = {};
           var tableItems = tables[i].getText("").split("\n");
 
-          console.log("table " + i + ":");
           tableObject.name =
             tables[
               i
@@ -109,96 +111,24 @@ export default {
           tableObject.estSpawn = tableItems[11]
             .replace("\t", "")
             .replace("\t", "");
-          console.log(tableObject);
 
           bosses[tableObject.name] = tableObject;
         }
-        console.log(bosses);
-        console.log("\nDate Time Objects (last Spawn):");
+
+        //go through the spawn time data and convert it to useable datetime objects
         for (var key in bosses) {
-          let lastSpawnTemp = this.buildDateObject(bosses[key].lastSpawn);
-          let spawnWindowOpenTemp = this.buildDateObject(
-            bosses[key].nextSpawn.split(" - ")[0]
-          );
-          let spawnWindowCloseTemp = this.buildDateObject(
-            bosses[key].nextSpawn.split(" - ")[1]
-          );
-          let estSpawnTemp = this.buildDateObject(bosses[key].estSpawn);
-
-          console.log(`${key}\nLast Spawn: ${bosses[key].lastSpawn}`);
-          console.log(lastSpawnTemp.format());
-          console.log(`\nSpawn Window: ${bosses[key].nextSpawn}`);
-          console.log(
-            `${spawnWindowOpenTemp.format()} - ${spawnWindowCloseTemp.format()}`
-          );
-          console.log(`\nEstimated Spawn: ${bosses[key].estSpawn}`);
-          console.log(estSpawnTemp.format());
-          console.log("\n\n");
           this.spawnTimes[key] = {
-              lastSpawn: this.buildDateObject(bosses[key].lastSpawn),
-              spawnWindowOpen: this.buildDateObject(bosses[key].nextSpawn.split(" - ")[0]),
-              spawnWindowClose:  this.buildDateObject(bosses[key].nextSpawn.split(" - ")[1]),
-              estSpawn: this.buildDateObject(bosses[key].estSpawn)
-          }
+            lastSpawn: this.buildDateObject(bosses[key].lastSpawn),
+            spawnWindowOpen: this.buildDateObject(
+              bosses[key].nextSpawn.split(" - ")[0]
+            ),
+            spawnWindowClose: this.buildDateObject(
+              bosses[key].nextSpawn.split(" - ")[1]
+            ),
+            estSpawn: this.buildDateObject(bosses[key].estSpawn)
+          };
         }
-        console.log(this.spawnTimes)
-
-        //Need to figure out how the date time stuff will work...
-        //need to convert string date ("Fri, 21:45 EST") to date time object with timezone functionality
-        // (function convertToDatetime() {
-        //   console.log("converting Datetimes:\n");
-        //   var currentDate = new Date();
-        //   const weekDays = {
-        //     Sun: 0,
-        //     Mon: 1,
-        //     Tue: 2,
-        //     Wed: 3,
-        //     Thu: 4,
-        //     Fri: 5,
-        //     Sat: 6
-        //   };
-        //   for (var key in bosses) {
-        //     console.log(key + ":");
-        //     var lastSpawn = bosses[key].lastSpawn.replace(",", "").split(" ");
-        //     lastSpawn[0] = weekDays[lastSpawn[0]];
-
-        //     console.log("Last Spawn:");
-        //     console.log(lastSpawn);
-        //     if (currentDate.getDay() === lastSpawn[0]) {
-        //       console.log("\nDays are equal:\n\nComposite date: ");
-        //       var compositeDate = moment.tz(
-        //         `${currentDate.getFullYear()}-${currentDate.getMonth() +
-        //           1}-${currentDate.getDate()} ${lastSpawn[1]}:00`,
-        //         "America/New_York"
-        //       );
-        //       console.log(compositeDate.format());
-        //       console.log(`CompositeDate with NewYorkTZ:`);
-        //       console.log(compositeDate.tz("America/New_York").format());
-
-        //       var LA_TZ = compositeDate.clone().tz("America/Los_Angeles");
-        //       console.log("\nCompositeDate with LA TZ:");
-        //       console.log(LA_TZ.format());
-        //       console.log("\nAdd one day:");
-        //       console.log(LA_TZ.add("days", 1).format());
-        //     } else {
-        //     }
-
-        //     console.log("currentDate: " + currentDate);
-        //     console.log(currentDate.getDay());
-
-        //     // var lastSpawnDate = moment(
-        //     //     currentDate.getYear() + '-' +
-        //     //     currentDate.getMonth() + '-' +
-        //     //     currentDate.
-        //     // )
-        //     // console.log(lastSpawnDate)
-        //     console.log(bosses[key].lastSpawn);
-        //     console.log("\n");
-        //     // bosses[key].lastSpawn =
-        //   }
-        // })();
-
-        soup.findAll("");
+        console.log(this.spawnTimes);
       })
       .catch(e => {
         this.errors.push(e);
@@ -208,5 +138,14 @@ export default {
 </script>
 
 <style scoped>
-
+.boss-list {
+    margin: auto;
+    width: 80%;
+}
+.boss-container {
+    min-height: 80px;
+    min-width: 500px;
+    background-color: grey;
+    margin: auto;
+}
 </style>
