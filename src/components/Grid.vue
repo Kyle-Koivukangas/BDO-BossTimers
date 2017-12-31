@@ -1,5 +1,5 @@
 <template>
-<div>
+<div class="main">
   <table>
     <thead>
       <tr>
@@ -87,6 +87,10 @@ export default {
 </script>
 
 <style scoped>
+.main {
+    display: flex;
+    justify-content: center;
+}
 body {
   font-family: Helvetica Neue, Arial, sans-serif;
   font-size: 14px;
@@ -94,13 +98,14 @@ body {
 }
 
 table {
-  border: 2px solid #42b983;
+  border: 2px solid #46618a;
   border-radius: 3px;
   background-color: #fff;
+  box-shadow: rgb(58, 58, 58) 0px 2px 5px;
 }
 
 th {
-  background-color: #42b983;
+  background-color: #424f63;
   color: rgba(255, 255, 255, 0.66);
   cursor: pointer;
   -webkit-user-select: none;

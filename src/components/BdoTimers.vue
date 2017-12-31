@@ -1,38 +1,31 @@
 <template>
 <div>
     <!-- <p>Errors: {{ errors }}</p> -->
-    <h1>BDO Boss Timers</h1>
+    <div class="title-container">
+        <h1>Black Desert Boss Timers</h1>
+    </div>
     <br>
-    <form id="search">
-        Search <input name="query" v-model="searchQuery">
-        Time zone:
-        <select v-model="timezone" name="timezone">
-            <option value="America/Vancouver">PST</option>
-            <option value="America/Edmonton">MST</option>
-            <option value="America/Regina">CST</option>
-            <option value="America/Toronto">EST</option>
-            <option value="America/Halifax">AST</option>
-            <option value="Europe/London">GMT</option>
-            <option value="Europe/Luxembourg">CET</option>
-            <option value="America/Anchorage">AKST</option>
-        </select>
-    </form>
-    <vue-grid
-        :data="gridData"
-        :columns="gridColumns"
-        :filter-key="searchQuery">
-    </vue-grid>
-    
-    <ul class="boss-list">
-        <li v-for="boss in bosses" :key="boss">
-            <div class="boss-container">
-                <h1>{{ boss }}</h1>
-            </div>
-        </li>
-    </ul>
-    <p>{{ spawnTimes }}</p>
-
-
+    <div class="boss-table">
+        <form id="search">
+            Search <input name="query" v-model="searchQuery">
+            Time zone:
+            <select v-model="timezone" name="timezone">
+                <option value="America/Vancouver">PST</option>
+                <option value="America/Edmonton">MST</option>
+                <option value="America/Regina">CST</option>
+                <option value="America/Toronto">EST</option>
+                <option value="America/Halifax">AST</option>
+                <option value="Europe/London">GMT</option>
+                <option value="Europe/Luxembourg">CET</option>
+                <option value="America/Anchorage">AKST</option>
+            </select>
+        </form>
+        <vue-grid
+            :data="gridData"
+            :columns="gridColumns"
+            :filter-key="searchQuery">
+        </vue-grid>
+    </div>
 </div>
 </template>
 
@@ -205,7 +198,7 @@ export default {
             )
           });
         }
-        console.log(this.spawnTimes);
+        // console.log(this.spawnTimes);
       })
       .catch(e => {
         this.errors.push(e);
@@ -215,6 +208,23 @@ export default {
 </script>
 
 <style scoped>
+.title-container {
+    width: calc(80% + 10px);
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    background-color: aliceblue;
+    border-radius: 3px;
+    /* justify-content: center; */
+    color: rgb(63, 67, 78);
+}
+.boss-table {
+    width: 80%;
+    margin: 0 auto 0 auto;
+    padding: 5px 5px 10px 5px;
+    background-color: aliceblue;
+    border-radius: 3px;
+}
 .boss-list {
   margin: auto;
   width: 80%;
@@ -225,5 +235,8 @@ export default {
   min-width: 500px;
   background-color: grey;
   margin: auto;
+}
+form {
+    padding-bottom: 5px;
 }
 </style>
