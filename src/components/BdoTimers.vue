@@ -1,6 +1,27 @@
 <template>
 <div>
-    <p>Errors: {{ errors }}</p>
+    <!-- <p>Errors: {{ errors }}</p> -->
+    <h1>BDO Boss Timers</h1>
+    <br>
+    <form id="search">
+        Search <input name="query" v-model="searchQuery">
+        Time zone:
+        <select v-model="timezone" name="timezone">
+            <option value="America/Vancouver">PST</option>
+            <option value="America/Edmonton">MST</option>
+            <option value="America/Regina">CST</option>
+            <option value="America/Toronto">EST</option>
+            <option value="America/Halifax">AST</option>
+            <option value="Europe/London">GMT</option>
+            <option value="Europe/Luxembourg">CET</option>
+            <option value="America/Anchorage">AKST</option>
+        </select>
+    </form>
+    <vue-grid
+        :data="gridData"
+        :columns="gridColumns"
+        :filter-key="searchQuery">
+    </vue-grid>
     
     <ul class="boss-list">
         <li v-for="boss in bosses" :key="boss">
@@ -11,6 +32,7 @@
     </ul>
     <p>{{ spawnTimes }}</p>
 
+
 </div>
 </template>
 
@@ -19,7 +41,12 @@ import axios from "axios";
 import JSSoup from "jssoup";
 import moment from "moment-timezone";
 
+import vueGrid from "./Grid.vue";
+
 export default {
+  components: {
+    vueGrid
+  },
   data() {
     return {
       bosses: [
@@ -34,10 +61,44 @@ export default {
       ],
       spawnTimes: {},
       timerPage: [],
-      errors: []
+      nextSpawns: {},
+      errors: [],
+      gridColumns: [
+        "name",
+        "lastSpawn",
+        "spawnWindowOpen",
+        "spawnWindowClose",
+        "estSpawn"
+      ],
+      gridData: [],
+      searchQuery: "",
+      timezone: "America/Vancouver"
     };
   },
-  computed: {},
+  watch: {
+    timezone: function(val) {
+      var data = [];
+      for (var boss in this.spawnTimes) {
+        data.push({
+          name: boss,
+          lastSpawn: this.spawnTimes[boss].lastSpawn
+            .tz(this.timezone)
+            .format("MMM Do, HH:mm (ddd)"),
+          spawnWindowOpen: this.spawnTimes[boss].spawnWindowOpen
+            .tz(this.timezone)
+            .format("MMM Do, HH:mm (ddd)"),
+          spawnWindowClose: this.spawnTimes[boss].spawnWindowClose
+            .tz(this.timezone)
+            .format("MMM Do, HH:mm (ddd)"),
+          estSpawn: this.spawnTimes[boss].estSpawn
+            .tz(this.timezone)
+            .format("MMM Do, HH:mm (ddd)")
+        });
+      }
+    //   console.log(data);
+      this.gridData = data;
+    }
+  },
   methods: {
     buildDateObject(givenDate) {
       //This takes a very specific input, the format of which is based on what the boss timer page gives (including the timezone)
@@ -127,6 +188,22 @@ export default {
             ),
             estSpawn: this.buildDateObject(bosses[key].estSpawn)
           };
+
+          this.gridData.push({
+            name: key,
+            lastSpawn: this.buildDateObject(bosses[key].lastSpawn).format(
+              "MMM Do, HH:mm (ddd)"
+            ),
+            spawnWindowOpen: this.buildDateObject(
+              bosses[key].nextSpawn.split(" - ")[0]
+            ).format("MMM Do, HH:mm (ddd)"),
+            spawnWindowClose: this.buildDateObject(
+              bosses[key].nextSpawn.split(" - ")[1]
+            ).format("MMM Do, HH:mm (ddd)"),
+            estSpawn: this.buildDateObject(bosses[key].estSpawn).format(
+              "MMM Do, HH:mm (ddd)"
+            )
+          });
         }
         console.log(this.spawnTimes);
       })
@@ -139,13 +216,14 @@ export default {
 
 <style scoped>
 .boss-list {
-    margin: auto;
-    width: 80%;
+  margin: auto;
+  width: 80%;
+  list-style: none;
 }
 .boss-container {
-    min-height: 80px;
-    min-width: 500px;
-    background-color: grey;
-    margin: auto;
+  min-height: 80px;
+  min-width: 500px;
+  background-color: grey;
+  margin: auto;
 }
 </style>
